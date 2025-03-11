@@ -1,5 +1,5 @@
 {
-  "name": "react-scorm-hooks",
+  "name": "@erik-efl/react-scorm-provider",
   "version": "1.0.0",
   "description": "Modern React Components to easily enable SCORM API communication in React projects. Updated fork of the original react-scorm-provider.",
   "main": "lib/index.js",
