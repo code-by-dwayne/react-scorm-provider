@@ -1,3 +1,13 @@
+# 1.0.0 (February 25, 2025)
+* Security updates (dependencies)
+  * Update all other dependencies to latest versions
+  * Update to use react 19.0.0
+  * Update to use react-dom 19.0.0
+* Update language from javascript to typescript
+* Feature
+  * Adding Reack hook
+  * Improve components
+
 # 0.2.4 (April 6, 2020)
 * Security updates (dependencies)
 
