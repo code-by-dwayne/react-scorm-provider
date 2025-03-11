@@ -1,6 +1,6 @@
 {
-  "name": "react-scorm-provider",
-  "version": "0.2.4",
+  "name": "react-scorm-hooks",
+  "version": "1.0.0",
   "description": "Modern React Components to easily enable SCORM API communication in React projects. Updated fork of the original react-scorm-provider.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -86,7 +86,7 @@
   },
   "author": {
     "name": "Erik Ferreira de Lima",
-    "email": "serik.lima.f@outlook.com"
+    "email": "erik.lima.f@outlook.com"
   },
   "contributors": [
     {
