@@ -7,7 +7,12 @@
     "sourceMap": true,
     "noEmit": false,
     "jsx": "react",
-    "rootDir": "./src/lib"
+    "rootDir": "./src/lib",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "target": "ES2018",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/lib/**/*"],
   "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx", "src/tests"]
