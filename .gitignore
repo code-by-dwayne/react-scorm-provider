@@ -81,3 +81,5 @@ desktop.ini
 jest-cache/
 
 publish-npm.sh
+
+package-lock.json
