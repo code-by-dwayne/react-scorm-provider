@@ -1,7 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./components/App";
-import "./scorm-mock";
 import "./styles/normalize.css";
 import "./styles/skeleton.css";
 import "./styles/styles.css";
