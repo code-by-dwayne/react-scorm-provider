@@ -23,7 +23,10 @@
     "docs:dev": "vite --port 8000 --open",
     "docs:build": "vite build",
     "test": "jest --verbose",
-    "clean": "rm -rf lib node_modules/.cache tsconfig.tsbuildinfo"
+    "clean": "rm -rf lib node_modules/.cache tsconfig.tsbuildinfo",
+    "publish:patch": "./publish-npm.sh patch",
+    "publish:minor": "./publish-npm.sh minor",
+    "publish:major": "./publish-npm.sh major"
   },
   "keywords": [
     "react",
