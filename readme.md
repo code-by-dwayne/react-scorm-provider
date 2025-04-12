@@ -2,7 +2,7 @@
 
 Presented by
 
-<a href="https://s4netquest.com"><img src="https://s4-netquest.github.io/@erik-efl/react-scorm-provider/images/s4-logo.png" alt="S4 NetQuest Logo" style="max-width: 250px;" /></a>
+<a href="https://s4netquest.com"><img src="https://s4-netquest.github.io/react-scorm-provider/images/s4-logo.png" alt="S4 NetQuest Logo" style="max-width: 250px;" /></a>
 
 ## Overview
 
@@ -286,7 +286,7 @@ This fork is maintained by [Erik Ferreira de Lima]. The library has been moderni
 
 ### Acknowledgements
 - [pipwerks SCORM API Wrapper](https://github.com/pipwerks/scorm-api-wrapper) for the underlying SCORM implementation
-- All the original contributors to @erik-efl/react-scorm-provider
+- All the original contributors to react-scorm-provider
 
 ## License
 
