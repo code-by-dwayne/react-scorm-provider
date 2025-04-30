@@ -1,24 +1,9 @@
 import React, { createContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { SCORM, debug } from "pipwerks-scorm-api-wrapper";
 import { Score } from ".";
+import { IScormContextProps } from "@/@types/scorm-context-props";
 
-// Define Score interface
-interface ScormContextProps {
-  apiConnected: boolean;
-  learnerName: string;
-  completionStatus: string;
-  suspendData: Record<string, any>;
-  scormVersion: string;
-  getSuspendData: () => Promise<void>;
-  setSuspendData: () => void;
-  clearSuspendData: () => void;
-  setStatus: (status: string) => void;
-  setScore: (score: Score) => Promise<any>;
-  set: (key: string, value: any) => void;
-  get: (key: string) => any;
-}
-
-export const ScoContext = createContext<ScormContextProps | undefined>(undefined);
+export const ScoContext = createContext<IScormContextProps | undefined>(undefined);
 
 interface ScormProviderProps {
   children: ReactNode;
@@ -80,6 +65,67 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
       console.error("ScormProvider error: could not close the API connection");
     }
   }, [apiConnected, completionStatus]);
+
+  /**
+  * @description Saves all current student progress to the LMS without ending the session (LMSCommit)
+  * @example
+  * commitData();
+  * @returns {Promise<any>} A promise that resolves with the result of the save operation
+  * @throws {Error} If the SCORM API is not connected
+  */
+  const commitData = useCallback(() => {
+    if (!apiConnected) {
+      return Promise.reject(new Error("SCORM API not connected"));
+    }
+
+    try {
+      SCORM.set("cmi.suspend_data", JSON.stringify(suspendData));
+
+      SCORM.status("set", completionStatus);
+
+      if (scormVersion === "1.2") {
+        const sessionTime = SCORM.get("cmi.core.session_time");
+        if (sessionTime) {
+          SCORM.set("cmi.core.session_time", sessionTime);
+        }
+      } else if (scormVersion === "2004") {
+        const sessionTime = SCORM.get("cmi.session_time");
+        if (sessionTime) {
+          SCORM.set("cmi.session_time", sessionTime);
+        }
+      }
+
+      if (scormVersion === "1.2") {
+        const location = SCORM.get("cmi.core.lesson_location");
+        if (location) {
+          SCORM.set("cmi.core.lesson_location", location);
+        }
+      } else if (scormVersion === "2004") {
+        const location = SCORM.get("cmi.location");
+        if (location) {
+          SCORM.set("cmi.location", location);
+        }
+      }
+
+      if (scormVersion === "2004") {
+        const progress = SCORM.get("cmi.progress_measure");
+        if (progress) {
+          SCORM.set("cmi.progress_measure", progress);
+        }
+      }
+
+      const saveResult = SCORM.save();
+
+      return Promise.resolve({
+        success: true,
+        saveResult,
+        message: "Student progress saved successfully",
+      });
+    } catch (error) {
+      console.error("Error saving student progress:", error);
+      return Promise.reject(error);
+    }
+  }, [apiConnected, suspendData, completionStatus, scormVersion]);
 
   const getSuspendData = useCallback(async () => {
     if (!apiConnected) throw new Error("SCORM API not connected");
@@ -158,6 +204,7 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
         setScore,
         set,
         get,
+        commitData,
       }}
     >
       {children}
@@ -165,7 +212,7 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
   );
 };
 
-export const useScorm = (): ScormContextProps => {
+export const useScorm = (): IScormContextProps => {
   const context = React.useContext(ScoContext);
   if (!context) {
     throw new Error("useScorm must be used within a ScormProvider");
