@@ -10,14 +10,35 @@ import React, {
 } from "react";
 import { Score } from ".";
 
+// Extend the Window interface to include SCORM API properties
+declare global {
+	interface Window {
+		API: any;
+		API_1484_11?: any;
+	}
+}
+
 export const ScoContext = createContext<IScormContextProps | undefined>(
 	undefined
 );
 
+// Tipo para as versões suportadas do SCORM
+type ScormVersion = "1.2" | "2004" | "auto";
+
+// Tipo para as opções de autocommit
+type AutoCommitOptions =
+	| boolean
+	| {
+			interval?: number; // intervalo em milissegundos para commits automáticos
+			onStateChange?: boolean; // realizar commit quando os dados de estado mudarem
+	  };
+
 interface ScormProviderProps {
 	children: ReactNode;
-	version?: "1.2" | "2004";
+	version?: ScormVersion;
 	debug?: boolean;
+	autoCommit?: AutoCommitOptions;
+	autoInitialize?: boolean;
 }
 
 const SCORM_CONNECTION = SCORM as PipwerksScormAPI;
@@ -49,8 +70,10 @@ const formatSessionTime = (milliseconds: number): string => {
 
 const ScormProvider: React.FC<ScormProviderProps> = ({
 	children,
-	version,
+	version = "auto",
 	debug: isDebug,
+	autoCommit = true,
+	autoInitialize = true,
 }) => {
 	const [apiConnected, setApiConnected] = useState(false);
 	const [learnerName, setLearnerName] = useState("unknown");
@@ -59,6 +82,29 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 	const [scormVersion, setScormVersion] = useState<string>("");
 
 	const logger = createLoggers(!!isDebug);
+
+	// Função para detectar automaticamente a versão do SCORM
+	const detectScormVersion = useCallback(() => {
+		if (window?.API) {
+			return "1.2";
+		} else if (window?.API_1484_11) {
+			return "2004";
+		}
+
+		// Tenta encontrar no parent window (caso esteja em um iframe)
+		try {
+			if (window.parent?.API) {
+				return "1.2";
+			} else if (window.parent?.API_1484_11) {
+				logger.log("Auto-detected SCORM version in parent window: 2004");
+				return "2004";
+			}
+		} catch (e) {
+			logger.warn("Error accessing parent window:", e);
+		}
+
+		return "1.2";
+	}, [logger]);
 
 	const getSuspendData = useCallback(async () => {
 		if (!apiConnected) {
@@ -109,6 +155,11 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 	} => {
 		if (apiConnected) return { success: true };
 
+		if (!autoInitialize) {
+			logger.log("Auto initialization disabled, skipping SCORM API connection");
+			return { success: false, errorMessage: "Auto initialization disabled" };
+		}
+
 		if (typeof window === "undefined") {
 			return {
 				success: false,
@@ -117,7 +168,10 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 		}
 
 		try {
-			if (version) SCORM_CONNECTION.version = version;
+			const scormVersionToUse =
+				version === "auto" ? detectScormVersion() : version;
+
+			if (scormVersionToUse) SCORM_CONNECTION.version = scormVersionToUse;
 			if (typeof isDebug === "boolean") debug.isActive = isDebug;
 
 			const API = SCORM_CONNECTION.API.getHandle();
@@ -130,23 +184,35 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 				};
 			}
 
-			// Verificar manualmente se podemos inicializar a API
-			let directInitSuccess = false;
+			let isAPIAlreadyInitialized = false;
+
 			if (
 				SCORM_CONNECTION.version === "1.2" &&
 				typeof API.LMSInitialize === "function"
 			) {
 				try {
-					// Para SCORM 1.2, a função LMSInitialize retorna "true"/"false" como string
-					directInitSuccess = API.LMSInitialize("") === "true";
-					logger.log("Direct LMSInitialize result:", directInitSuccess);
+					const initResult = API.LMSInitialize("");
+					logger.log("Direct LMSInitialize result:", initResult);
 
-					if (!directInitSuccess) {
+					if (initResult === "false") {
 						const errorCode = API.LMSGetLastError();
 						const errorString = API.LMSGetErrorString(errorCode);
-						logger.warn(
-							`Direct LMSInitialize failed. Error code: ${errorCode}, Description: ${errorString}`
-						);
+
+						if (
+							errorCode === "103" ||
+							errorString?.includes("Already Initialized")
+						) {
+							logger.log(
+								"API already initialized (SCORM 1.2). Using existing connection."
+							);
+							isAPIAlreadyInitialized = true;
+						} else {
+							logger.warn(
+								`LMSInitialize failed. Error code: ${errorCode}, Description: ${errorString}`
+							);
+						}
+					} else {
+						logger.log("Direct LMSInitialize successful");
 					}
 				} catch (e) {
 					logger.warn("Error during direct API.LMSInitialize call:", e);
@@ -156,27 +222,38 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 				typeof API.Initialize === "function"
 			) {
 				try {
-					// Para SCORM 2004, a função Initialize retorna um booleano
-					directInitSuccess = API.Initialize("") === true;
-					logger.log("Direct Initialize result:", directInitSuccess);
+					const initResult = API.Initialize("");
+					logger.log("Direct Initialize result:", initResult);
 
-					if (!directInitSuccess) {
+					if (initResult === false) {
 						const errorCode = API.GetLastError();
 						const errorString = API.GetErrorString(errorCode);
-						logger.warn(
-							`Direct Initialize failed. Error code: ${errorCode}, Description: ${errorString}`
-						);
+
+						if (
+							errorCode === "103" ||
+							errorString?.includes("Already Initialized")
+						) {
+							logger.log(
+								"API already initialized (SCORM 2004). Using existing connection."
+							);
+							isAPIAlreadyInitialized = true;
+						} else {
+							logger.warn(
+								`Initialize failed. Error code: ${errorCode}, Description: ${errorString}`
+							);
+						}
+					} else {
+						logger.log("Direct Initialize successful");
 					}
 				} catch (e) {
 					logger.warn("Error during direct API.Initialize call:", e);
 				}
 			}
 
-			// Continue com a inicialização normal através do wrapper
-			if (SCORM_CONNECTION.connection.initialize()) {
-				const scormVersion = SCORM_CONNECTION.version;
+			if (isAPIAlreadyInitialized || SCORM_CONNECTION.connection.initialize()) {
+				const currentVersion = SCORM_CONNECTION.version;
 				const learner =
-					scormVersion === "1.2"
+					currentVersion === "1.2"
 						? SCORM_CONNECTION.get("cmi.core.student_name")
 						: SCORM_CONNECTION.get("cmi.learner_name");
 				const status = SCORM_CONNECTION.status("get");
@@ -184,11 +261,21 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 				setApiConnected(true);
 				setLearnerName(learner || "unknown");
 				setCompletionStatus(typeof status === "string" ? status : "unknown");
-				setScormVersion(scormVersion);
-				getSuspendData();
+				setScormVersion(currentVersion);
+
+				try {
+					getSuspendData();
+				} catch (error) {
+					logger.warn(
+						"Error retrieving suspend data, but connection established:",
+						error
+					);
+				}
 
 				logger.log(
-					`SCORM connection successfully established (version: ${scormVersion})`
+					`SCORM connection ${
+						isAPIAlreadyInitialized ? "reused" : "established"
+					} (version: ${currentVersion})`
 				);
 				return { success: true };
 			} else {
@@ -219,7 +306,15 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 			logger.error(errorMessage);
 			return { success: false, errorMessage };
 		}
-	}, [apiConnected, version, isDebug, getSuspendData, logger]);
+	}, [
+		apiConnected,
+		version,
+		isDebug,
+		getSuspendData,
+		logger,
+		autoInitialize,
+		detectScormVersion,
+	]);
 
 	const commitData = useCallback(async (): Promise<boolean> => {
 		if (!apiConnected) {
@@ -391,6 +486,31 @@ const ScormProvider: React.FC<ScormProviderProps> = ({
 		},
 		[apiConnected]
 	);
+
+	useEffect(() => {
+		if (!apiConnected || !autoCommit) return;
+
+		const commitInterval =
+			typeof autoCommit === "object" && autoCommit.interval
+				? autoCommit.interval
+				: 60000;
+
+		const autoCommitTimer = setInterval(() => {
+			logger.log("Auto commit triggered by interval");
+			commitData();
+		}, commitInterval);
+
+		return () => clearInterval(autoCommitTimer);
+	}, [apiConnected, autoCommit, commitData, logger]);
+
+	useEffect(() => {
+		if (!apiConnected || !autoCommit) return;
+
+		if (typeof autoCommit === "object" && autoCommit.onStateChange) {
+			logger.log("Auto commit triggered by state change");
+			commitData();
+		}
+	}, [apiConnected, autoCommit, suspendData, commitData, logger]);
 
 	return (
 		<ScoContext.Provider
