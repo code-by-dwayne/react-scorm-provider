@@ -47,14 +47,14 @@ export interface IScormContextProps {
    * const suspendData = await getSuspendData();
    * @returns {Promise<void>}
   */
-  getSuspendData: () => Promise<boolean>;
+  getSuspendData: () => boolean;
   /**
    * @description Function to set the suspend data to the SCORM API
    * @example
    * setSuspendData({ key: "value" });
    * @returns {void}
   */
-  setSuspendData: () => Promise<boolean>;
+  setSuspendData: () => boolean;
   /**
    * @description Function to clear the suspend data from the SCORM API
    * @example
@@ -102,5 +102,5 @@ export interface IScormContextProps {
    * @returns {Promise<any>}
    * @throws {Error} If the SCORM API is not connected
   */
-  commitData: () => Promise<boolean>;
+  commitData: () => boolean;
 }

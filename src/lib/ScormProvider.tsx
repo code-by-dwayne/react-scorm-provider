@@ -79,12 +79,12 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
   * @description Saves all current student progress to the LMS without ending the session (LMSCommit)
   * @example
   * commitData();
-  * @returns {Promise<any>} A promise that resolves with the result of the save operation
+  * @returns {boolean} A promise that resolves with the result of the save operation
   * @throws {Error} If the SCORM API is not connected
   */
-  const commitData = useCallback(async (): Promise<boolean> => {
+  const commitData = useCallback((): boolean => {
     if (!apiConnected) {
-      return Promise.reject(new Error("SCORM API não conectada"));
+      throw new Error("SCORM API não conectada");
     }
 
     try {
@@ -125,7 +125,7 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
     }
   }, [apiConnected]);
 
-  const getSuspendData = useCallback(async () => {
+  const getSuspendData = useCallback(() => {
     if (!apiConnected) {
       throw new Error("SCORM API não conectada");
     }
@@ -168,7 +168,7 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
     }
   }, [apiConnected]);
 
-  const setSuspendData = useCallback(async () => {
+  const setSuspendData = useCallback(() => {
     if (!apiConnected) {
       console.warn("SCORM API não conectada, impossível salvar dados");
       return false;
@@ -190,7 +190,7 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
         SCORM.set("cmi.core.lesson_status", "incomplete");
       }
 
-      const commitSuccess = await commitData();
+      const commitSuccess = commitData();
 
       const savedData = SCORM.get("cmi.suspend_data");
       if (!savedData || savedData === "{}") {
@@ -264,7 +264,7 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
         suspendData,
         scormVersion,
         getSuspendData,
-        setSuspendData,
+				setSuspendData,
         clearSuspendData,
         setStatus,
         setScore,
