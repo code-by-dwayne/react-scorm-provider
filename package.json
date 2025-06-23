@@ -75,7 +75,7 @@
   },
   "author": {
     "name": "Dwayne Sandall",
-    "email": "erik.lima.f@outlook.com"
+    "email": "diffuse_hoist.1z@icloud.com"
   },
   "contributors": [
     {
@@ -83,14 +83,14 @@
       "url": "https://s4netquest.com"
     },
     {
-    "name": "Erik Ferreira de Lima",
-    "email": "erik.lima.f@outlook.com"
-  }
+      "name": "Erik Ferreira de Lima",
+      "email": "erik.lima.f@outlook.com"
+    }
   ],
   "homepage": "https://github.com/code-by-dwayne/react-scorm-provider",
   "repository": {
     "type": "git",
-    "url": "git@github.com:code-by-dwayne/react-scorm-provider.git"
+    "url": "git+ssh://git@github.com/code-by-dwayne/react-scorm-provider.git"
   },
   "bugs": {
     "url": "https://github.com/code-by-dwayne/react-scorm-provider/issues"
