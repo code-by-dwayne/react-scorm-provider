@@ -19,6 +19,13 @@ export interface IScormContextProps {
   */
   learnerName: string;
   /**
+   * @description The ID of the learner
+   * @type {string}
+   * @default "unknown"
+   * @example "john_doe"
+  */
+  learnerID: string;
+  /**
    * @description The completion status of the SCORM
    * @type {string}
    * @default "unknown"

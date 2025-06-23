@@ -23,6 +23,7 @@ const formatSessionTime = (milliseconds: number): string => {
 const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug: isDebug }) => {
   const [apiConnected, setApiConnected] = useState(false);
   const [learnerName, setLearnerName] = useState("unknown");
+  const [learnerID, setLearnerID] = useState("unknown");
   const [completionStatus, setCompletionStatus] = useState("unknown");
   const [suspendData, setSuspendDataState] = useState<Record<string, any>>({});
   const [scormVersion, setScormVersion] = useState<string>("");
@@ -45,13 +46,15 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
     if (SCORM.init()) {
       const version = SCORM.version;
       const learner = version === "1.2" ? SCORM.get("cmi.core.student_name") : SCORM.get("cmi.learner_name");
+      const learnerID = version === "1.2" ? SCORM.get("cmi.core.student_id") : SCORM.get("cmi.learner_id");
       const status = SCORM.status("get");
 
       setApiConnected(true);
       setLearnerName(learner || "unknown");
+      setLearnerID(learnerID || "unknown");
       setCompletionStatus(status || "unknown");
       setScormVersion(version);
-      getSuspendData();
+      // getSuspendData();
     } else {
       console.error("ScormProvider init error: could not create the SCORM API connection");
     }
@@ -260,6 +263,7 @@ const ScormProvider: React.FC<ScormProviderProps> = ({ children, version, debug:
       value={{
         apiConnected,
         learnerName,
+        learnerID,
         completionStatus,
         suspendData,
         scormVersion,

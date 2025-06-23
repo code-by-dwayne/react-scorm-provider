@@ -5,6 +5,7 @@ Presented by
 <a href="https://s4netquest.com"><img src="https://s4-netquest.github.io/react-scorm-provider/images/s4-logo.png" alt="S4 NetQuest Logo" style="max-width: 250px;" /></a>
 
 ## Overview
+I've forked the version from @erik-efl to add in a few more elements returned by the useScorm hook.
 
 @erik-efl/react-scorm-provider (RSP) is a set of React Components that simplify the inclusion of the [SCORM API](https://scorm.com/scorm-explained/) into your React projects. It utilizes the great SCORM API wrapper from [pipwerks](https://github.com/pipwerks/scorm-api-wrapper). Use RSP to easily add SCORM capabilities to your learning modules, resources, games, or *any* web content you are creating with React. RSP in its current form is meant for single SCO packages and relatively simple communications to the LMS, however it can easily be extended and modified to work for more complex projects.
 
@@ -15,16 +16,16 @@ RSP now offers two ways to access SCORM functionality:
 1. The modern React Hooks approach via `useScorm()`
 2. The classic Higher-Order Component pattern with `withScorm()`
 
-[View the live demo](https://s4-netquest.github.io/@erik-efl/react-scorm-provider)
+
 
 ---
 
 ## Installation
 
 ```bash
-npm install @erik-efl/react-scorm-provider
+npm install @code-by-dwayne/react-scorm-provider
 # ou
-yarn add @erik-efl/react-scorm-provider
+yarn add @code-by-dwayne/react-scorm-provider
 ```
 
 ## ScormProvider Component
@@ -48,7 +49,7 @@ Putting it together:
 // adding a ScormProvider
 
 import React from 'react';
-import { ScormProvider } from '@erik-efl/react-scorm-provider';
+import { ScormProvider } from '@ecode-by-dwayne/react-scorm-provider';
 
 const App = () => {
   return (
@@ -78,7 +79,7 @@ Example:
 // Using the useScorm hook in a functional component
 
 import React from 'react';
-import { useScorm } from '@erik-efl/react-scorm-provider';
+import { useScorm } from '@ecode-by-dwayne/react-scorm-provider';
 
 const LearnerComponent = () => {
   const {
@@ -126,7 +127,7 @@ Example:
 // enhancing a component with withScorm
 
 import React from 'react';
-import { withScorm } from '@erik-efl/react-scorm-provider';
+import { withScorm } from '@code-by-dwayne/react-scorm-provider';
 
 const StandardFunctionalComponent = (props) => {
   return (
@@ -157,6 +158,9 @@ Whether you use the `useScorm` hook or the `withScorm` HOC, you'll have access t
 
   // cmi.core.student_name (SCORM 1.2) || cmi.learner_name (SCORM 2004)
   learnerName: String,
+
+  // cmi.core.student_id (SCORM 1.2) || cmi.learner_id
+  learnerID: String,
 
   // indication of course status
   completionStatus: String,
@@ -209,7 +213,7 @@ interface Score {
 
 ```jsx
 import React from 'react';
-import { ScormProvider, useScorm } from '@erik-efl/react-scorm-provider';
+import { ScormProvider, useScorm } from '@code-by-dwayne/react-scorm-provider';
 
 // Component using the useScorm hook
 function LearnerComponent() {
@@ -243,7 +247,7 @@ export default App;
 
 ```jsx
 import React from 'react';
-import { ScormProvider, withScorm } from '@erik-efl/react-scorm-provider';
+import { ScormProvider, withScorm } from '@code-by-dwayne/react-scorm-provider';
 
 const Learner = (props) => {
   return (
@@ -282,7 +286,9 @@ This package is compatible with:
 Originally created and maintained by [S4 NetQuest](https://s4netquest.com).
 
 ### Current Maintainer
-This fork is maintained by [Erik Ferreira de Lima]. The library has been modernized to support React hooks and current TypeScript standards while maintaining compatibility with the original API.
+This is a fork of the fork by [Erik Ferreira de Lima]. The library has been modernized to support React hooks and current TypeScript standards while maintaining compatibility with the original API.
+
+I've added a missing learnerID return on the useScorm implementation.
 
 ### Acknowledgements
 - [pipwerks SCORM API Wrapper](https://github.com/pipwerks/scorm-api-wrapper) for the underlying SCORM implementation
